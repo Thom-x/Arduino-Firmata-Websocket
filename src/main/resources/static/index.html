@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello WebSocket</title>
+</head>
+<body onload="disconnect()">
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
+<div>
+    <div>
+        <button id="connect" onclick="connect();">Connect</button>
+        <button id="disconnect" disabled="disabled" onclick="disconnect();">Disconnect</button>
+    </div>
+    <div id="conversationDiv">
+        <input type="number" id="red" /><input type="number" id="green" /><input type="number" id="blue" />
+        <button id="sendName" onclick="sendName();">Send</button>
+        <p id="response"></p>
+    </div>
+</div>
+<script src="Long.min.js"></script>
+<script src="ByteBufferAB.min.js"></script>
+<script src="//cdn.rawgit.com/dcodeIO/ProtoBuf.js/4.1.1/dist/ProtoBuf.js"></script>
+<script src="sockjs-0.3.4.js"></script>
+<script src="stomp.js"></script>
+<script type="text/javascript">
+    var ProtoBuf = dcodeIO.ProtoBuf;
+    var builder = ProtoBuf.loadProtoFile("led.proto");
+            Arduino = builder.build("Arduino"),
+                    Led = Arduino.Led;
+
+
+    var stompClient = null;
+
+    function setConnected(connected) {
+        document.getElementById('connect').disabled = connected;
+        document.getElementById('disconnect').disabled = !connected;
+        document.getElementById('conversationDiv').style.visibility = connected ? 'visible' : 'hidden';
+        document.getElementById('response').innerHTML = '';
+    }
+
+    function connect() {
+        var socket = new SockJS('/led');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function(frame) {
+            setConnected(true);
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/result/led', function(greeting){
+                showGreeting(Led.decode64(greeting.body));
+            });
+        });
+    }
+
+    function disconnect() {
+        if (stompClient != null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        console.log("Disconnected");
+    }
+
+    function sendName() {
+        var red = document.getElementById('red').value;
+        var green = document.getElementById('green').value;
+        var blue = document.getElementById('blue').value;
+
+        // Construct with arguments list in field order:
+        var ledCmd = new Led({red :  parseInt(red), green : parseInt(green), blue : parseInt(blue)});
+        var buffer = ledCmd.encode64();
+        //console.log(buffer);
+        stompClient.send("/app/led", {}, buffer);
+    }
+
+    function showGreeting(reponse) {
+        var response = document.getElementById('response');
+        var p = document.createElement('p');
+        p.style.wordWrap = 'break-word';
+        //p.appendChild(document.createTextNode(reponse.red + " " + reponse.green + " " + reponse.blue));
+        //response.appendChild(p);
+    }
+
+/*    var fadeRed = 0, fadeGreen = 0, fadeBlue = 0;
+    setInterval(function(){
+        if (stompClient != null) {
+            fadeRed = ++fadeRed % 255;
+            fadeGreen = ++fadeGreen % 255;
+            fadeBlue = ++fadeBlue % 255;
+            var ledCmd = new Led({red: fadeRed, green: fadeGreen, blue: fadeBlue});
+            var buffer = ledCmd.encode64();
+            //console.log(buffer);
+            stompClient.send("/app/led", {}, buffer);
+        }
+    }, 4);*/
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+package Arduino;
+
+option java_package = "fr.thomas.maugin.arduino.firmata.proto";
+option java_outer_classname = "Firmata";
+
+message Led {
+  required int32  red = 1;
+  required int32  green = 2;
+  required int32  blue = 3;
+}
