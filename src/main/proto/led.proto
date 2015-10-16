@@ -8,3 +8,6 @@ message Led {
   required int32  green = 2;
   required int32  blue = 3;
 }
+
+message Fade {
+}
