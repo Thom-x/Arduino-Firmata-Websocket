@@ -1,7 +1,8 @@
 package fr.thomas.maugin.arduino.firmata.contorller;
 
 import fr.thomas.maugin.arduino.firmata.service.FirmataService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class FadeController {
 
-    final static Logger logger = Logger.getLogger(FadeController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FadeController.class);
 
     @Autowired
     FirmataService firmataService;

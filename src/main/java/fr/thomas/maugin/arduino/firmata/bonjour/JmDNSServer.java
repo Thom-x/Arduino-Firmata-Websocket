@@ -1,6 +1,7 @@
 package fr.thomas.maugin.arduino.firmata.bonjour;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,7 @@ import java.net.InetAddress;
 @Configuration
 public class JmDNSServer {
 
-    final static Logger logger = Logger.getLogger(JmDNSServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JmDNSServer.class);
     public static final String ARDUINO_FIRMATA = "_ws._tcp.local.";
 
     @Value("${local.server.port}")
@@ -30,14 +31,14 @@ public class JmDNSServer {
     public boolean getServerJmDNS() throws IOException {
         new Thread(() -> {
             try {
-                logger.info("Registering Bonjour service...");
+                LOGGER.info("Registering Bonjour service...");
                 JmDNS mdnsServer = JmDNS.create(InetAddress.getLocalHost());
                 // Register a test service.
                 ServiceInfo firmataService = ServiceInfo.create(ARDUINO_FIRMATA, "Firmata Arduino Service", Integer.valueOf(serverPort), "Firmata Arduino Service");
                 mdnsServer.registerService(firmataService);
-                logger.info("Firmata service registered at port " + serverPort);
+                LOGGER.info("Firmata service registered at port {}",serverPort);
             } catch (IOException e) {
-                logger.error("Error while registering bonjour service : ",e);
+                LOGGER.error("Error while registering bonjour service : ",e);
             }
         }).start();
         return true;

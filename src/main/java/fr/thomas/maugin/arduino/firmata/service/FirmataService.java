@@ -1,8 +1,11 @@
 package fr.thomas.maugin.arduino.firmata.service;
 
-import org.apache.log4j.Logger;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import org.firmata4j.IODevice;
 import org.firmata4j.Pin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import rx.Observable;
@@ -21,15 +24,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class FirmataService {
 
-    final static Logger logger = Logger.getLogger(FirmataService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FirmataService.class);
 
     private BehaviorSubject<Boolean> fade = BehaviorSubject.create(false);
+
+    @Autowired
+    MetricRegistry metrics;
 
     @Autowired
     IODevice device;
 
     @PostConstruct
     private void init() {
+
+        Meter fadeCmd = metrics.meter("Fade command");
+
         AtomicInteger red = new AtomicInteger(0);
         AtomicInteger blue = new AtomicInteger(127);
         AtomicInteger green = new AtomicInteger(254);
@@ -44,6 +53,7 @@ public class FirmataService {
         Observable.combineLatest(interval, fade.distinctUntilChanged(), (a, b) -> b) //
                 .filter(b -> b) //
                 .subscribe(b -> {
+                    fadeCmd.mark();
                     try {
                         Integer redValue = red.updateAndGet(i -> {
                             if (i > 254) {
@@ -81,7 +91,7 @@ public class FirmataService {
                         pin10.setValue(redValue);
                         pin11.setValue(blueValue);
                     } catch (IOException e) {
-                        logger.error("Erreur : ", e);
+                        LOGGER.error("Erreur : ", e);
                     }
                 });
 
@@ -92,7 +102,7 @@ public class FirmataService {
                         pin10.setValue(0);
                         pin11.setValue(0);
                     } catch (IOException e) {
-                        logger.error("Erreur : ", e);
+                        LOGGER.error("Erreur : ", e);
                     }
                 });
     }
@@ -101,7 +111,7 @@ public class FirmataService {
     }
 
     public void setFading(boolean fading) {
-        logger.info("Enable fading : " + fading);
+        LOGGER.info("Enable fading : {}", fading);
         fade.onNext(fading);
     }
 }

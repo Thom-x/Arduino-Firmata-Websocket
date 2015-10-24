@@ -56,6 +56,11 @@
             <artifactId>rxjava</artifactId>
             <version>1.0.14</version>
         </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>3.1.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -99,7 +104,7 @@
                         <configuration>
                             <dontWrapJar>false</dontWrapJar>
                             <headerType>console</headerType>
-                            <jar>target/${artifactId}-${version}.jar</jar>
+                            <jar>target/${project.artifactId}-${project.version}.jar</jar>
                             <outfile>target/LED.exe</outfile>
                             <errTitle></errTitle>
                             <cmdLine></cmdLine>
@@ -110,7 +115,7 @@
                             <stayAlive>false</stayAlive>
                             <restartOnCrash>false</restartOnCrash>
                             <manifest></manifest>
-                            <icon></icon>
+                            <icon>src/main/resources/icon.ico</icon>
                             <singleInstance>
                                 <mutexName>fr.thomas.maugin.arduino.firmata</mutexName>
                                 <windowTitle></windowTitle>

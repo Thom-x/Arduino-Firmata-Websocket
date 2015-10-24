@@ -10,3 +10,9 @@ serial:
 local:
   server:
     port: 8080
+
+metrics:
+  frequency: 10
+  console: false
+  jmx: false
+  slf4j: true
