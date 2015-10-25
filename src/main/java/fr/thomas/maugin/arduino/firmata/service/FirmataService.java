@@ -2,7 +2,8 @@ package fr.thomas.maugin.arduino.firmata.service;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
-import org.firmata4j.IODevice;
+import fr.thomas.maugin.arduino.firmata.domain.Leds;
+import org.apache.commons.lang3.tuple.Triple;
 import org.firmata4j.Pin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,12 +28,13 @@ public class FirmataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(FirmataService.class);
 
     private BehaviorSubject<Boolean> fade = BehaviorSubject.create(false);
+    private BehaviorSubject<Triple<Integer, Integer, Integer>> set = BehaviorSubject.create();
 
     @Autowired
     MetricRegistry metrics;
 
     @Autowired
-    IODevice device;
+    Leds leds;
 
     @PostConstruct
     private void init() {
@@ -46,8 +48,9 @@ public class FirmataService {
         AtomicBoolean ascendingGreen = new AtomicBoolean(true);
         AtomicBoolean ascendingBlue = new AtomicBoolean(true);
 
-        Pin pin10 = device.getPin(10);
-        Pin pin11 = device.getPin(11);
+        Pin pinRed = leds.getRed();
+        Pin pinGreen = leds.getGreen();
+        Pin pinBlue = leds.getBlue();
 
         final Observable<Long> interval = Observable.interval(4L, TimeUnit.MILLISECONDS);
         Observable.combineLatest(interval, fade.distinctUntilChanged(), (a, b) -> b) //
@@ -55,52 +58,37 @@ public class FirmataService {
                 .subscribe(b -> {
                     fadeCmd.mark();
                     try {
-                        Integer redValue = red.updateAndGet(i -> {
-                            if (i > 254) {
-                                ascendingRed.set(false);
-                                return --i;
-                            } else if (i < 1) {
-                                ascendingRed.set(true);
-                                return ++i;
-                            } else {
-                                return ascendingRed.get() ? ++i : --i;
-                            }
-                        });
-                        Integer greenValue = green.updateAndGet(i -> {
-                            if (i > 254) {
-                                ascendingGreen.set(false);
-                                return --i;
-                            } else if (i < 1) {
-                                ascendingGreen.set(true);
-                                return ++i;
-                            } else {
-                                return ascendingGreen.get() ? ++i : --i;
-                            }
-                        });
-                        Integer blueValue = blue.getAndUpdate(i -> {
-                            if (i > 254) {
-                                ascendingBlue.set(false);
-                                return --i;
-                            } else if (i < 1) {
-                                ascendingBlue.set(true);
-                                return ++i;
-                            } else {
-                                return ascendingBlue.get() ? ++i : --i;
-                            }
-                        });
-                        pin10.setValue(redValue);
-                        pin11.setValue(blueValue);
+                        Integer redValue = fadeUpdate(red, ascendingRed);
+                        Integer greenValue = fadeUpdate(green, ascendingGreen);
+                        Integer blueValue = fadeUpdate(blue, ascendingBlue);
+                        pinRed.setValue(redValue);
+                        pinGreen.setValue(greenValue);
+                        pinBlue.setValue(blueValue);
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
                 });
 
-        Observable.combineLatest(interval, fade.distinctUntilChanged(), (a, b) -> !b) //
-                .filter(b -> b) //
+        Observable.combineLatest(interval, fade, (a, b) -> b) //
+                .distinctUntilChanged() //
+                .filter(b -> !b) //
                 .subscribe(b -> {
                     try {
-                        pin10.setValue(0);
-                        pin11.setValue(0);
+                        pinRed.setValue(0);
+                        pinGreen.setValue(0);
+                        pinBlue.setValue(0);
+                    } catch (IOException e) {
+                        LOGGER.error("Erreur : ", e);
+                    }
+                });
+
+        Observable.combineLatest(interval, set, (a, b) -> b) //
+                .distinctUntilChanged() //
+                .subscribe(triple -> {
+                    try {
+                        pinRed.setValue(triple.getLeft());
+                        pinGreen.setValue(triple.getMiddle());
+                        pinBlue.setValue(triple.getRight());
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
@@ -111,7 +99,25 @@ public class FirmataService {
     }
 
     public void setFading(boolean fading) {
-        LOGGER.info("Enable fading : {}", fading);
         fade.onNext(fading);
+    }
+
+    public void setColor(int r, int g, int b) {
+        fade.onNext(false);
+        set.onNext(Triple.of(r, g, b));
+    }
+
+    private int fadeUpdate(AtomicInteger value, AtomicBoolean direction) {
+        return value.updateAndGet(i -> {
+            if (i > 254) {
+                direction.set(false);
+                return --i;
+            } else if (i < 1) {
+                direction.set(true);
+                return ++i;
+            } else {
+                return direction.get() ? ++i : --i;
+            }
+        });
     }
 }

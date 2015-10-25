@@ -20,7 +20,8 @@
     "bytebuffer": "~4.1.0",
     "protobuf": "~4.1.1",
     "sockjs": "~0.3.4",
-    "stomp-websocket": "~2.3.4"
+    "stomp-websocket": "~2.3.4",
+    "md-color-picker": "*"
   },
   "resolutions": {
     "bytebuffer": "~3"

@@ -1,6 +1,9 @@
 package fr.thomas.maugin.arduino.firmata.config;
 
+import fr.thomas.maugin.arduino.firmata.domain.Leds;
+import fr.thomas.maugin.arduino.firmata.settings.PinOutSettings;
 import fr.thomas.maugin.arduino.firmata.settings.SerialFirmataSettings;
+import org.apache.commons.lang3.tuple.Triple;
 import org.firmata4j.IODevice;
 import org.firmata4j.Pin;
 import org.firmata4j.firmata.FirmataDevice;
@@ -27,6 +30,12 @@ public class SerialFirmataConfig {
     @Autowired
     SerialFirmataSettings serialFirmataSettings;
 
+    @Autowired
+    PinOutSettings pinOutSettings;
+
+    @Autowired
+    IODevice device;
+
     /**
      * Create and connect firmata service
      * @return IODevice to control arduino
@@ -37,13 +46,23 @@ public class SerialFirmataConfig {
         try {
             device.start(); // initiate communication to the device
             device.ensureInitializationIsDone(); // wait for initialization is done
-            Pin pin10 = device.getPin(10);
-            Pin pin11 = device.getPin(11);
-            pin10.setMode(Pin.Mode.PWM);
-            pin11.setMode(Pin.Mode.PWM);
+            Pin pinRed = device.getPin(pinOutSettings.getRed());
+            Pin pinGreen = device.getPin(pinOutSettings.getGreen());
+            Pin pinBlue = device.getPin(pinOutSettings.getBlue());
+            pinRed.setMode(Pin.Mode.PWM);
+            pinGreen.setMode(Pin.Mode.PWM);
+            pinBlue.setMode(Pin.Mode.PWM);
         } catch (IOException | InterruptedException e) {
             LOGGER.error("Error : ", e);
         }
         return device;
+    }
+
+    @Bean
+    public Leds getLeds() {
+        Pin pinRed = device.getPin(pinOutSettings.getRed());
+        Pin pinGreen = device.getPin(pinOutSettings.getGreen());
+        Pin pinBlue = device.getPin(pinOutSettings.getBlue());
+        return new Leds(pinRed, pinGreen, pinBlue);
     }
 }

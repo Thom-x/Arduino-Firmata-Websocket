@@ -21,6 +21,7 @@ public class FadeController {
     @MessageMapping("/fade")
     @SendTo("/result/fade")
     public String setLedPwn() {
+        LOGGER.info("Getting command fade");
         fade = !fade;
         firmataService.setFading(fade);
         return "OK";
