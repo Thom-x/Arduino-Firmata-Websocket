@@ -1,0 +1,31 @@
+{
+  "name": "arduinoFirmataLed",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular": "^1.3.0",
+    "json3": "~3.2.4",
+    "jquery": "~1.9.1",
+    "es5-shim": "~2.0.8",
+    "angular-resource": "^1.3.0",
+    "angular-cookies": "^1.3.0",
+    "angular-sanitize": "^1.3.0",
+    "angular-aria": "^1.3.0",
+    "angular-animate": "^1.3.0",
+    "angular-messages": "^1.3.0",
+    "angular-touch": "^1.3.0",
+    "bytebuffer": "~4.1.0",
+    "protobuf": "~4.1.1",
+    "sockjs": "~0.3.4",
+    "stomp-websocket": "~2.3.4",
+    "md-color-picker": "*",
+    "angular-material": "0.11.2",
+    "angular-ui-router": "*" 
+  },
+  "resolutions": {
+    "bytebuffer": "~3"
+  },
+  "devDependencies": {
+    "angular-mocks": "^1.3.0",
+    "angular-scenario": "^1.3.0"
+  }
+}

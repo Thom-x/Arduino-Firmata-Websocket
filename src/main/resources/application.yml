@@ -5,7 +5,7 @@ spring:
   profiles: default
 
 serial:
-  port: COM3
+  port: COM4
 
 local:
   server:
@@ -21,3 +21,4 @@ pin:
   red: 10
   green: 11
   blue: 13
+

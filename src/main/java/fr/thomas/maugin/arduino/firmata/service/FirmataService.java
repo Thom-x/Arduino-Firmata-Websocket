@@ -27,6 +27,7 @@ public class FirmataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FirmataService.class);
 
+    private boolean lastFade = false;
     private BehaviorSubject<Boolean> fade = BehaviorSubject.create(false);
     private BehaviorSubject<Triple<Integer, Integer, Integer>> set = BehaviorSubject.create();
 
@@ -99,12 +100,18 @@ public class FirmataService {
     }
 
     public void setFading(boolean fading) {
+        lastFade = fading;
         fade.onNext(fading);
     }
 
     public void setColor(int r, int g, int b) {
         fade.onNext(false);
+        lastFade = false;
         set.onNext(Triple.of(r, g, b));
+    }
+
+    public boolean getLastFade() {
+        return lastFade;
     }
 
     private int fadeUpdate(AtomicInteger value, AtomicBoolean direction) {

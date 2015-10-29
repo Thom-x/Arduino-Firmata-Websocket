@@ -1,0 +1,12 @@
+.md-color-picker-container {
+    padding: 8px;
+    background: #fff;
+    outline: 0;
+    height: 397px;
+    width: 100%;
+    max-width: 347px;
+    min-width: 296px;
+    opacity: 1;
+    overflow: hidden;
+    z-index: 1000;
+}
