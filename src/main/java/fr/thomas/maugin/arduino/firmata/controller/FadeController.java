@@ -1,4 +1,4 @@
-package fr.thomas.maugin.arduino.firmata.contorller;
+package fr.thomas.maugin.arduino.firmata.controller;
 
 import fr.thomas.maugin.arduino.firmata.service.FirmataService;
 import org.slf4j.Logger;
@@ -16,14 +16,12 @@ public class FadeController {
     @Autowired
     FirmataService firmataService;
 
-    private boolean fade = false;
-
     @MessageMapping("/fade")
     @SendTo("/result/fade")
     public String setLedPwn() {
         LOGGER.info("Getting command fade");
-        fade = !fade;
-        firmataService.setFading(fade);
+        LOGGER.info("cmd FIN");
+        firmataService.setFading(!firmataService.getLastFade());
         return "OK";
     }
 }

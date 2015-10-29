@@ -1,4 +1,4 @@
-package fr.thomas.maugin.arduino.firmata.contorller;
+package fr.thomas.maugin.arduino.firmata.controller;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import fr.thomas.maugin.arduino.firmata.proto.Firmata;
