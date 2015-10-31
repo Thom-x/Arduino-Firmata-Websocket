@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static fr.thomas.maugin.arduino.firmata.utils.LedUtils.setLinearizedValue;
+
 /**
  * Created by Thomas on 11/10/2015.
  */
@@ -62,9 +64,9 @@ public class FirmataService {
                         Integer redValue = fadeUpdate(red, ascendingRed);
                         Integer greenValue = fadeUpdate(green, ascendingGreen);
                         Integer blueValue = fadeUpdate(blue, ascendingBlue);
-                        pinRed.setValue(redValue);
-                        pinGreen.setValue(greenValue);
-                        pinBlue.setValue(blueValue);
+                        setLinearizedValue(pinRed, redValue);
+                        setLinearizedValue(pinGreen, greenValue);
+                        setLinearizedValue(pinBlue, blueValue);
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
@@ -75,9 +77,9 @@ public class FirmataService {
                 .filter(b -> !b) //
                 .subscribe(b -> {
                     try {
-                        pinRed.setValue(0);
-                        pinGreen.setValue(0);
-                        pinBlue.setValue(0);
+                        setLinearizedValue(pinRed, 0);
+                        setLinearizedValue(pinGreen, 0);
+                        setLinearizedValue(pinBlue, 0);
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
@@ -87,9 +89,9 @@ public class FirmataService {
                 .distinctUntilChanged() //
                 .subscribe(triple -> {
                     try {
-                        pinRed.setValue(triple.getLeft());
-                        pinGreen.setValue(triple.getMiddle());
-                        pinBlue.setValue(triple.getRight());
+                        setLinearizedValue(pinRed, triple.getLeft());
+                        setLinearizedValue(pinGreen, triple.getMiddle());
+                        setLinearizedValue(pinBlue, triple.getRight());
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
