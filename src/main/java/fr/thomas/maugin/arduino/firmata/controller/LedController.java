@@ -30,7 +30,7 @@ public class LedController {
     @SendTo("/result/led")
     public String setLedPwn(String ledCmdBuffer) throws InvalidProtocolBufferException {
         byte[] decodedBytes = Base64.decodeBase64(ledCmdBuffer);
-        final Firmata.Led ledCmd = Firmata.Led.parseFrom(decodedBytes);
+        final Firmata.LedCommand ledCmd = Firmata.LedCommand.parseFrom(decodedBytes);
         LOGGER.info("Getting command setColor : {}", ledCmd);
         firmataService.setColor(ledCmd.getRed(), ledCmd.getGreen(), ledCmd.getBlue());
         return ledCmdBuffer;

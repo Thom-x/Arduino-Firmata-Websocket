@@ -2,8 +2,8 @@
 
 angular.module('arduinoFirmataLedApp')
   .controller('FadeCtrl', ["$scope", "Arduino", "$mdToast", function ($scope, Arduino,  $mdToast) {
-    $scope.fade = function () {
-      Arduino.setFade();
+    $scope.setFade = function() {
+      Arduino.setFade($scope.fadeType);
       $mdToast.show(
         $mdToast.simple()
           .content('Envoyé !')

@@ -1,10 +1,22 @@
 package Arduino;
 
-option java_package = "fr.thomas.maugin.arduino.firmata";
+option java_package = "fr.thomas.maugin.arduino.firmata.proto";
 option java_outer_classname = "Firmata";
 
-message Led {
+message LedCommand {
   required int32  red = 1;
   required int32  green = 2;
   required int32  blue = 3;
+}
+
+message FadeCommand {
+
+  enum Type {
+    RAINBOW = 0;
+    POLICE = 1;
+    OFF = 2;
+    CATERPILLAR = 3;
+  }
+
+  required Type type = 1;
 }

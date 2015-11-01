@@ -11,6 +11,8 @@ import java.io.IOException;
  */
 public class LedUtils {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LedUtils.class);
+
     private static final int[] lookupTable = new int[]{
             0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3,
@@ -28,13 +30,11 @@ public class LedUtils {
             214, 219, 224, 229, 234, 239, 244, 250, 255
     };
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LedUtils.class);
-
-    private final static Integer linearize(Integer led) {
+    public static Integer linearize(Integer led) {
         return lookupTable[led];
     }
 
-    public final static void setLinearizedValue(Pin pinRed, Integer redValue) throws IOException {
-        pinRed.setValue(linearize(redValue));
+    public static void setLinearizedValue(Pin pinRed, Integer value) throws IOException {
+        pinRed.setValue(linearize(value));
     }
 }

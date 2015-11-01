@@ -1,7 +1,24 @@
 <md-content class="md-padding">
     <md-card>
         <md-card-content>
-            <md-button ng-click="fade()">Fade</md-button>
+			<h4>Fading</h4>
+            <md-input-container>
+		        <label>Motif</label>
+		        <md-select ng-model="fadeType" ng-change="setFade(fadeType)">
+			          <md-option value="2">
+			            OFF
+			          </md-option>
+			          <md-option value="0">
+			            RAINBOW
+			          </md-option>
+			          <md-option value="1">
+			            POLICE
+			          </md-option>
+			          <md-option value="3">
+			            CHENILLE
+			          </md-option>
+		        </md-select>
+		      </md-input-container>
         </md-card-content>
     </md-card>
 </md-content>

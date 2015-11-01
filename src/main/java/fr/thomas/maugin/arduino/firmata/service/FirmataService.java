@@ -2,8 +2,11 @@ package fr.thomas.maugin.arduino.firmata.service;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import fr.thomas.maugin.arduino.firmata.api.ILEdController;
+import fr.thomas.maugin.arduino.firmata.api.LedController;
 import fr.thomas.maugin.arduino.firmata.domain.Leds;
-import org.apache.commons.lang3.tuple.Triple;
+import fr.thomas.maugin.arduino.firmata.pojo.*;
+import fr.thomas.maugin.arduino.firmata.proto.Firmata;
 import org.firmata4j.Pin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +17,6 @@ import rx.subjects.BehaviorSubject;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static fr.thomas.maugin.arduino.firmata.utils.LedUtils.setLinearizedValue;
 
 /**
  * Created by Thomas on 11/10/2015.
@@ -29,12 +27,10 @@ public class FirmataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FirmataService.class);
 
-    private boolean lastFade = false;
-    private BehaviorSubject<Boolean> fade = BehaviorSubject.create(false);
-    private BehaviorSubject<Triple<Integer, Integer, Integer>> set = BehaviorSubject.create();
+    private final BehaviorSubject<ILEdController> ledControllerObs = BehaviorSubject.create(new Color(0, 0, 0));
 
     @Autowired
-    MetricRegistry metrics;
+    MetricRegistry registry;
 
     @Autowired
     Leds leds;
@@ -42,56 +38,45 @@ public class FirmataService {
     @PostConstruct
     private void init() {
 
-        Meter fadeCmd = metrics.meter("Fade command");
-
-        AtomicInteger red = new AtomicInteger(0);
-        AtomicInteger blue = new AtomicInteger(127);
-        AtomicInteger green = new AtomicInteger(254);
-        AtomicBoolean ascendingRed = new AtomicBoolean(true);
-        AtomicBoolean ascendingGreen = new AtomicBoolean(true);
-        AtomicBoolean ascendingBlue = new AtomicBoolean(true);
+        final Meter meter = registry.meter("Set led");
 
         Pin pinRed = leds.getRed();
         Pin pinGreen = leds.getGreen();
         Pin pinBlue = leds.getBlue();
 
-        final Observable<Long> interval = Observable.interval(4L, TimeUnit.MILLISECONDS);
-        Observable.combineLatest(interval, fade.distinctUntilChanged(), (a, b) -> b) //
-                .filter(b -> b) //
-                .subscribe(b -> {
-                    fadeCmd.mark();
+        Observable.merge(//
+                ledControllerObs.switchMap(s -> s.getRed()), //
+                ledControllerObs.switchMap(s -> s.getRed()), //
+                ledControllerObs.switchMap(s -> s.getRed())) //
+                .subscribe(v -> {
+                    meter.mark();
+                });
+
+        ledControllerObs //
+                .switchMap(s -> s.getRed()) //
+                .subscribe(v -> {
                     try {
-                        Integer redValue = fadeUpdate(red, ascendingRed);
-                        Integer greenValue = fadeUpdate(green, ascendingGreen);
-                        Integer blueValue = fadeUpdate(blue, ascendingBlue);
-                        setLinearizedValue(pinRed, redValue);
-                        setLinearizedValue(pinGreen, greenValue);
-                        setLinearizedValue(pinBlue, blueValue);
+                        pinRed.setValue(v);
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
                 });
 
-        Observable.combineLatest(interval, fade, (a, b) -> b) //
-                .distinctUntilChanged() //
-                .filter(b -> !b) //
-                .subscribe(b -> {
+        ledControllerObs //
+                .switchMap(s -> s.getGreen()) //
+                .subscribe(v -> {
                     try {
-                        setLinearizedValue(pinRed, 0);
-                        setLinearizedValue(pinGreen, 0);
-                        setLinearizedValue(pinBlue, 0);
+                        pinGreen.setValue(v);
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
                 });
 
-        Observable.combineLatest(interval, set, (a, b) -> b) //
-                .distinctUntilChanged() //
-                .subscribe(triple -> {
+        ledControllerObs //
+                .switchMap(s -> s.getBlue()) //
+                .subscribe(v -> {
                     try {
-                        setLinearizedValue(pinRed, triple.getLeft());
-                        setLinearizedValue(pinGreen, triple.getMiddle());
-                        setLinearizedValue(pinBlue, triple.getRight());
+                        pinBlue.setValue(v);
                     } catch (IOException e) {
                         LOGGER.error("Erreur : ", e);
                     }
@@ -101,32 +86,24 @@ public class FirmataService {
     public FirmataService() {
     }
 
-    public void setFading(boolean fading) {
-        lastFade = fading;
-        fade.onNext(fading);
+    public void setFading(Firmata.FadeCommand fadeCommand) {
+        switch (fadeCommand.getType()) {
+            case OFF:
+                ledControllerObs.onNext(new Off());
+                break;
+            case RAINBOW:
+                ledControllerObs.onNext(new Rainbow());
+                break;
+            case POLICE:
+                ledControllerObs.onNext(new Police());
+                break;
+            case CATERPILLAR:
+                ledControllerObs.onNext(new Caterpillar());
+                break;
+        }
     }
 
     public void setColor(int r, int g, int b) {
-        fade.onNext(false);
-        lastFade = false;
-        set.onNext(Triple.of(r, g, b));
-    }
-
-    public boolean getLastFade() {
-        return lastFade;
-    }
-
-    private int fadeUpdate(AtomicInteger value, AtomicBoolean direction) {
-        return value.updateAndGet(i -> {
-            if (i > 254) {
-                direction.set(false);
-                return --i;
-            } else if (i < 1) {
-                direction.set(true);
-                return ++i;
-            } else {
-                return direction.get() ? ++i : --i;
-            }
-        });
+        ledControllerObs.onNext(new Color(r, g, b));
     }
 }
