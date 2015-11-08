@@ -1,6 +1,7 @@
 package fr.thomas.maugin.arduino.firmata.controller;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import fr.thomas.maugin.arduino.firmata.annotation.Loggable;
 import fr.thomas.maugin.arduino.firmata.proto.Firmata;
 import fr.thomas.maugin.arduino.firmata.service.FirmataService;
 import org.apache.commons.codec.binary.Base64;
@@ -28,6 +29,7 @@ public class LedController {
      */
     @MessageMapping("/led")
     @SendTo("/result/led")
+    @Loggable
     public String setLedPwn(String ledCmdBuffer) throws InvalidProtocolBufferException {
         byte[] decodedBytes = Base64.decodeBase64(ledCmdBuffer);
         final Firmata.LedCommand ledCmd = Firmata.LedCommand.parseFrom(decodedBytes);
